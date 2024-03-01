@@ -1,4 +1,3 @@
 [workspace]
 members = [ "embedder","wasm-plugin"]
 resolver = "2"
-
