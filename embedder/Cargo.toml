@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 wasmer = "4.2.5"
+wasmer-wasix = "0.18.0"
+tokio = "1.36.0"
