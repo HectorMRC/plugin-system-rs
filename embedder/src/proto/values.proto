@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package values;
+
+message Slice {
+    int32 len = 1;
+    int32 aptr = 2;
+}
+
+message EchoIO {
+    string message = 1;
+}

@@ -9,3 +9,11 @@ edition = "2021"
 wasmer = "4.2.5"
 wasmer-wasix = "0.18.0"
 tokio = "1.36.0"
+protobuf = "3.4.0"
+
+[build-dependencies]
+protobuf-codegen = "3.4.0"
+
+[lib]
+name = "embedder"
+path = "src/lib.rs"

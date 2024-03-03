@@ -9,17 +9,17 @@ pub extern "C" fn add(delta: u8) -> u8 {
     *value
 }
 
-// #[no_mangle]
-// pub extern "C" fn echo(ptr: u64) -> Text {
-//     let msg = unsafe {
-//          let len = *(ptr as *const u32);
-//          let bytes = (ptr + 4) as *const u8;
-//          let slice = core::slice::from_raw_parts(bytes, len as usize);
-//          core::str::from_utf8_unchecked(slice)
-//     };
+#[no_mangle]
+pub extern "C" fn echo(ptr: i32) -> Box<()> {
+    let _msg = unsafe {
+         let len = *(ptr as *const u32);
+         let bytes = (ptr + 4) as *const u8;
+         let slice = core::slice::from_raw_parts(bytes, len as usize);
+         core::str::from_utf8_unchecked(slice)
+    };
 
-//     Text { ptr: 0, len: 0 }
-// }
+    Box::new(())
+}
 
 #[cfg(test)]
 mod tests {
