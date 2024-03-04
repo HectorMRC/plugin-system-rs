@@ -1,9 +1,9 @@
-use std::{fs::File, io::Read};
+use byteorder::{LittleEndian, ReadBytesExt};
+use proto::values::EchoIO;
 use protobuf::Message;
+use std::{fs::File, io::Read};
 use wasmer::{Instance, Module, Store, WasmSlice};
 use wasmer_wasix::WasiEnv;
-use proto::values::EchoIO;
-use byteorder::{LittleEndian, ReadBytesExt};
 
 static PLUGIN_PATH: &'static str = "./target/wasm32-wasi/release/wasm_plugin.wasm";
 
@@ -18,7 +18,7 @@ async fn main() {
 
     let mut wasi_env = WasiEnv::builder("engine").finalize(&mut store).unwrap();
     let import_object = wasi_env.import_object(&mut store, &module).unwrap();
-    
+
     let instance = Instance::new(&mut store, &module, &import_object).unwrap();
 
     wasi_env.initialize(&mut store, instance.clone()).unwrap();
@@ -34,7 +34,7 @@ async fn main() {
     let result = add.call(&mut store, 3).unwrap();
     assert_eq!(result, 5);
 
-    let input = EchoIO{
+    let input = EchoIO {
         message: "hello world".to_string(),
         ..Default::default()
     };
@@ -58,13 +58,19 @@ async fn main() {
 
     let pointer = echo.call(&mut store, heap_start).unwrap();
     let view = memory.view(&store);
-    
+
     let output_len = {
-        let bytes = WasmSlice::new(&view, pointer as u64, 4).unwrap().read_to_vec().unwrap();
+        let bytes = WasmSlice::new(&view, pointer as u64, 4)
+            .unwrap()
+            .read_to_vec()
+            .unwrap();
         bytes.as_slice().read_u32::<LittleEndian>().unwrap()
     };
 
-    let output_bytes = WasmSlice::new(&view, pointer as u64 + 4, output_len as u64).unwrap().read_to_vec().unwrap();
+    let output_bytes = WasmSlice::new(&view, pointer as u64 + 4, output_len as u64)
+        .unwrap()
+        .read_to_vec()
+        .unwrap();
     let output = EchoIO::parse_from_bytes(&output_bytes).unwrap();
     assert_eq!(output.message, input.message);
 }
