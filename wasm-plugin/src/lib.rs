@@ -1,36 +1,32 @@
 use std::sync::Mutex;
+use proto::values::EchoIO;
+use protobuf::Message;
 
 static ADD_BASE: Mutex<u8> = Mutex::new(0);
 
 #[no_mangle]
-pub extern "C" fn add(delta: u8) -> u8 {
+fn add(delta: u8) -> u8 {
     let mut value = ADD_BASE.lock().unwrap();
     *value += delta;
     *value
 }
 
 #[no_mangle]
-pub extern "C" fn echo(ptr: i32) -> Box<()> {
-    let _msg = unsafe {
+fn echo(ptr: u32) -> *const u8 {
+    let input = unsafe {
          let len = *(ptr as *const u32);
          let bytes = (ptr + 4) as *const u8;
          let slice = core::slice::from_raw_parts(bytes, len as usize);
-         core::str::from_utf8_unchecked(slice)
+         EchoIO::parse_from_bytes(slice).unwrap()
     };
 
-    Box::new(())
-}
+    let output = EchoIO{
+        message: input.message,
+        ..Default::default()
+    };
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2);
-        assert_eq!(result, 2);
-
-        let result = add(3);
-        assert_eq!(result, 5);
-    }
+    let output_bytes = output.write_to_bytes().unwrap();
+    let output_len = (output_bytes.len() as u32).to_le_bytes();
+    let output_bytes = [&output_len[..], &output_bytes].concat();
+    output_bytes.as_ptr()
 }

@@ -1,8 +1,9 @@
 use std::{fs::File, io::Read};
 use protobuf::Message;
-use wasmer::{Instance, Module, Store};
+use wasmer::{Instance, Module, Store, WasmSlice};
 use wasmer_wasix::WasiEnv;
-use embedder::values::EchoIO;
+use proto::values::EchoIO;
+use byteorder::{LittleEndian, ReadBytesExt};
 
 static PLUGIN_PATH: &'static str = "./target/wasm32-wasi/release/wasm_plugin.wasm";
 
@@ -17,7 +18,6 @@ async fn main() {
 
     let mut wasi_env = WasiEnv::builder("engine").finalize(&mut store).unwrap();
     let import_object = wasi_env.import_object(&mut store, &module).unwrap();
-    // let import_object = imports! {};
     
     let instance = Instance::new(&mut store, &module, &import_object).unwrap();
 
@@ -34,10 +34,14 @@ async fn main() {
     let result = add.call(&mut store, 3).unwrap();
     assert_eq!(result, 5);
 
-    let mut input = EchoIO::new();
-    input.message = "hello world".to_string();
+    let input = EchoIO{
+        message: "hello world".to_string(),
+        ..Default::default()
+    };
 
     let input_bytes = input.write_to_bytes().unwrap();
+    let input_len = (input_bytes.len() as u32).to_le_bytes();
+    let input_bytes = [&input_len[..], &input_bytes].concat();
 
     let heap_start = 0x110000;
     let memory = instance.exports.get_memory("memory").unwrap();
@@ -49,8 +53,18 @@ async fn main() {
 
     let echo = instance
         .exports
-        .get_typed_function::<i32, i32>(&mut store, "echo")
+        .get_typed_function::<u32, u32>(&mut store, "echo")
         .unwrap();
 
-    let _result = echo.call(&mut store, heap_start).unwrap();
+    let pointer = echo.call(&mut store, heap_start).unwrap();
+    let view = memory.view(&store);
+    
+    let output_len = {
+        let bytes = WasmSlice::new(&view, pointer as u64, 4).unwrap().read_to_vec().unwrap();
+        bytes.as_slice().read_u32::<LittleEndian>().unwrap()
+    };
+
+    let output_bytes = WasmSlice::new(&view, pointer as u64 + 4, output_len as u64).unwrap().read_to_vec().unwrap();
+    let output = EchoIO::parse_from_bytes(&output_bytes).unwrap();
+    assert_eq!(output.message, input.message);
 }

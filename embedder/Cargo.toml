@@ -6,14 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+proto = { path = "../proto" }
 wasmer = "4.2.5"
 wasmer-wasix = "0.18.0"
 tokio = "1.36.0"
+byteorder = "1.5.0"
 protobuf = "3.4.0"
-
-[build-dependencies]
-protobuf-codegen = "3.4.0"
-
-[lib]
-name = "embedder"
-path = "src/lib.rs"
