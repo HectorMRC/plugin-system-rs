@@ -1,12 +1,12 @@
 [package]
-name = "wasm-plugin"
+name = "protobuf_io"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-proto = { path = "../proto" }
+proto = { path = "../../proto" }
 protobuf = "3.4.0"
 
 [lib]

@@ -1,3 +1,3 @@
 [workspace]
-members = [ "embedder", "proto","wasm-plugin"]
+members = [ "embedder", "proto","wasm-plugin/global_add", "wasm-plugin/protobuf_io"]
 resolver = "2"
