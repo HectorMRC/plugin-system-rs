@@ -79,6 +79,7 @@ fn run_protobuf_io(store: &mut Store, wasi_env: &mut WasiFunctionEnv) {
         .unwrap()
         .read_to_vec()
         .unwrap();
+    
     let output = EchoIO::parse_from_bytes(&output_bytes).unwrap();
 
     assert_eq!(output.message, input.message);
